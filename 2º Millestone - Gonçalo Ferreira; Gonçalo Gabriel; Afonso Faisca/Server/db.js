@@ -15,7 +15,7 @@ const db = mysql.createConnection({
 
     // Password do utilizador
     // Neste caso está vazia
-    password: "",
+    password: "123456789",
 
     // Nome da base de dados criada no MySQL Workbench
     database: "animal_squad"

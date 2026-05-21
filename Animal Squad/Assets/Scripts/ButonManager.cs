@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class ButonManager : MonoBehaviour
 {
@@ -19,5 +20,37 @@ public class ButonManager : MonoBehaviour
     public void ShowPassword()
     {
         _loginRegister.ShowPassword();
+    }
+
+    public void Register()
+    {
+        _loginRegister.Register();
+    }
+
+    public void Login()
+    {
+        _loginRegister.Login();
+    }
+
+    public void Play()
+    {
+        SceneManager.LoadScene("Login_Register");
+    }
+
+    public void Exit()
+    {
+        Application.Quit();
+    }
+
+    public void Options()
+    {
+        Debug.Log("Carregando cena de opções...");
+        SceneManager.LoadScene("Options");
+    }
+
+    public void Credits()
+    {
+        Debug.Log("Carregando cena de créditos...");
+        SceneManager.LoadScene("Credits");
     }
 }
