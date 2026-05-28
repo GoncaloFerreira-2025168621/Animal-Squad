@@ -1,5 +1,7 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
+using UnityEngine.Audio;
 
 public class Options : MonoBehaviour
 {
@@ -197,5 +199,41 @@ public class Options : MonoBehaviour
             _FPSvalidation = false;
         }
     }
+    #endregion
+
+    #region Audio
+    public AudioMixer _audioMixer;
+
+    public Slider _masterSlider;
+    public Slider _sfxSlider;
+    public Slider _musicSlider;
+
+    public void SetMasterVolume(float value)
+    {
+        SetVolume("Master", value);
+    }
+
+    public void SetMusicVolume(float value)
+    {
+        SetVolume("Music", value);
+    }
+
+    public void SetSFXVolume(float value)
+    {
+        SetVolume("SFX", value);
+    }
+
+    private void SetVolume(string parameterName, float value)
+    {
+        if (value <= 0.0001f)
+            value = 0.0001f;
+
+        float volume = Mathf.Log10(value) * 20f;
+
+        bool result = _audioMixer.SetFloat(parameterName, volume);
+
+        Debug.Log(parameterName + " | Slider: " + value + " | dB: " + volume + " | Result: " + result);
+    }
+
     #endregion
 }
