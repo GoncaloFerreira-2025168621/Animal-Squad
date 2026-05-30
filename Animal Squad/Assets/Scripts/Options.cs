@@ -13,6 +13,8 @@ public class Options : MonoBehaviour
     [SerializeField] private GameObject _VideoMenu;
     [SerializeField] private GameObject _GameplayMenu;
 
+    //[SerializeField] private Options_scriptable _optionsScriptable;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -150,40 +152,40 @@ public class Options : MonoBehaviour
     public void Res720p()//720p
     {
         Screen.SetResolution(1280, 720, true);
-        Debug.Log("720p");
-        _ResolutionText.text = "720p";
+        Debug.Log("1280x720");
+        _ResolutionText.text = "1280x720";
         _ResolutionDropdown.SetActive(false);
     }
 
     public void Res768p()//768p
     {
         Screen.SetResolution(1366, 768, true);
-        Debug.Log("768p");
-        _ResolutionText.text = "768p";
+        Debug.Log("1366x768");
+        _ResolutionText.text = "1366x768";
         _ResolutionDropdown.SetActive(false);
     }
 
     public void Res1080p()//1080p
     {
         Screen.SetResolution(1920, 1080, true);
-        Debug.Log("1080p");
-        _ResolutionText.text = "1080p";
+        Debug.Log("1920x1080");
+        _ResolutionText.text = "1920x1080";
         _ResolutionDropdown.SetActive(false);
     }
 
     public void Res1440p()//1440p
     {
         Screen.SetResolution(2560, 1440, true);
-        Debug.Log("1440p");
-        _ResolutionText.text = "1440p";
+        Debug.Log("2560x1440");
+        _ResolutionText.text = "2560x1440";
         _ResolutionDropdown.SetActive(false);
     }
 
     public void Res2160p()//2160p
     {
         Screen.SetResolution(3840, 2160, true);
-        Debug.Log("2160p");
-        _ResolutionText.text = "2160p";
+        Debug.Log("3840x2160");
+        _ResolutionText.text = "3840x2160";
         _ResolutionDropdown.SetActive(false);
     }
     #endregion
@@ -202,6 +204,8 @@ public class Options : MonoBehaviour
     #endregion
 
     #region Audio
+
+    [Header("Audio")]
     public AudioMixer _audioMixer;
 
     public Slider _masterSlider;
@@ -233,6 +237,11 @@ public class Options : MonoBehaviour
         bool result = _audioMixer.SetFloat(parameterName, volume);
 
         Debug.Log(parameterName + " | Slider: " + value + " | dB: " + volume + " | Result: " + result);
+    }
+
+    public void OutPutAudio()//Output de Audio
+    {
+        Debug.Log("Audio Output");
     }
 
     #endregion

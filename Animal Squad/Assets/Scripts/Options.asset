@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: edb311b76df5d144e86434e81eb11a0a, type: 3}
+  m_Name: Options
+  m_EditorClassIdentifier: 
+  _AudioLinha: {fileID: 0}
+  _VideoLinha: {fileID: 0}
+  _GameplayLinha: {fileID: 0}
+  _OptionsMenu: {fileID: 0}
+  _AudioMenu: {fileID: 0}
+  _VideoMenu: {fileID: 0}
+  _GameplayMenu: {fileID: 0}
+  _ScreenDropdown: {fileID: 0}
+  _ScreenText: {fileID: 0}
+  _ResolutionDropdown: {fileID: 0}
+  _ResolutionText: {fileID: 0}
+  _ShowFPS: {fileID: 0}
+  _CheckFPSActive: {fileID: 0}
+  _CheckFPSInactive: {fileID: 0}
+  _FPSvalidation: 0
+  fps: 0
+  _audioMixer: {fileID: 24100000, guid: 4bb1ae5418b11fd458a27232208e3e67, type: 2}
+  _masterSlider: {fileID: 0}
+  _sfxSlider: {fileID: 0}
+  _musicSlider: {fileID: 0}
