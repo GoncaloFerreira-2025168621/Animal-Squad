@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8113522677483120396}
   - component: {fileID: 4742928318646977406}
+  - component: {fileID: -8544267701253381272}
   - component: {fileID: 294615254698997194}
   - component: {fileID: 3647465982049484834}
   - component: {fileID: 9168854242805066386}
@@ -64,6 +65,20 @@ MonoBehaviour:
   AutoObjectParentSync: 1
   SyncOwnerTransformWhenParented: 1
   AllowOwnerToParent: 0
+--- !u!114 &-8544267701253381272
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4641443681725018257}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c06a0665decc1da44bdcafeae612010c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ShowTopMostFoldoutHeaderGroup: 1
+  _damagePoint: {fileID: 5865459983351077325}
 --- !u!114 &294615254698997194
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -81,7 +96,6 @@ MonoBehaviour:
   _rotationSpeed: 10
   _cameraTransform: {fileID: 0}
   _animator: {fileID: 1747117247864300846}
-  _damagePoint: {fileID: 5865459983351077325}
 --- !u!114 &3647465982049484834
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -315,6 +329,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _lifeObject: {fileID: 0}
   _damageAmount: 10
+  _targetTag: Object_Rat
 --- !u!1001 &7349049121037710449
 PrefabInstance:
   m_ObjectHideFlags: 0
