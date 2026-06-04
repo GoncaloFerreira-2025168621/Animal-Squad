@@ -3,6 +3,8 @@ using UnityEngine;
 
 public class PlayerCameraSetup : NetworkBehaviour
 {
+    public Transform _cameraTarget;
+
     public override void OnNetworkSpawn()
     {
         Debug.Log("Spawnou: " + gameObject.name + " | IsOwner: " + IsOwner);
@@ -25,7 +27,11 @@ public class PlayerCameraSetup : NetworkBehaviour
             return;
         }
 
-        cam._target = transform;
+        // Se não definires um alvo específico, a câmara segue o Rat_Player
+        if (_cameraTarget == null)
+            _cameraTarget = transform;
+
+        cam._target = _cameraTarget;
 
         Mov_Network movement = GetComponent<Mov_Network>();
 
@@ -35,7 +41,7 @@ public class PlayerCameraSetup : NetworkBehaviour
             return;
         }
 
-        movement._cameraTransform = Camera.main.transform;
+        movement._cameraTransform = mainCam.transform;
 
         Debug.Log("Camera vinculada ao player: " + gameObject.name);
     }

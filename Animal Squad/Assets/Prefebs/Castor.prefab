@@ -10,31 +10,31 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 9c80596eca6b3c540b20c0cce30e68f3, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 649.4
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 9c80596eca6b3c540b20c0cce30e68f3, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 74.16
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 9c80596eca6b3c540b20c0cce30e68f3, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 641.1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 9c80596eca6b3c540b20c0cce30e68f3, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 1
+      value: 0.9995257
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 9c80596eca6b3c540b20c0cce30e68f3, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 9c80596eca6b3c540b20c0cce30e68f3, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 9c80596eca6b3c540b20c0cce30e68f3, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0
+      value: 0.0307974
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 9c80596eca6b3c540b20c0cce30e68f3, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -46,7 +46,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 9c80596eca6b3c540b20c0cce30e68f3, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
+      value: 3.53
       objectReference: {fileID: 0}
     - target: {fileID: -2021178655527167927, guid: 9c80596eca6b3c540b20c0cce30e68f3, type: 3}
       propertyPath: m_LocalPosition.x
