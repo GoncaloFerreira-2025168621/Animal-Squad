@@ -5,11 +5,13 @@ TagManager:
   serializedVersion: 3
   tags:
   - Object_Rat
+  - Object_Beaver
+  - Object_Bird
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Beaver
   - Water
   - UI
   - 

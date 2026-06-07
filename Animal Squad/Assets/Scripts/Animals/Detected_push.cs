@@ -2,26 +2,24 @@ using UnityEngine;
 
 public class Detected_push : MonoBehaviour
 {
-    [SerializeField] private Move_Object _Move;
+    [Header("Tipo do animal")]
+    [SerializeField] private string _Animal_Type = "Bear";
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    [Header("Transform do animal")]
+    [SerializeField] private Transform _Animal_Transform;// Transform do animal para saber a direção de empurrar
+
+    private void OnTriggerStay(Collider _Other)//Detecta o objeto para empurrar
     {
-        
+        Move_Object _Move_Object = _Other.GetComponent<Move_Object>();// Verifica se o objeto tem o script Move_Object para empurrar
+
+        if (_Move_Object == null)
+            return;
+
+        Vector3 _Direction = Vector3.ProjectOnPlane(_Animal_Transform.forward, Vector3.up); // Projeta a direção do animal no plano horizontal
+        _Direction.Normalize();
+
+        _Move_Object.TryPushServerRpc(_Animal_Type, _Direction);
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
 
-    private void OnTriggerEnter(Collider other)// Verifica se o objeto que entrou na trigger tem a tag "Object_Rat"
-    {
-        if (other.gameObject.CompareTag("Object_Bear"))
-        {
-            _Move = other.gameObject.GetComponent<Move_Object>(); // Obtém o componente Life_Object do objeto que entrou na trigger
-            _Move._Moved = true; //passa a variável para true para que o objeto possa ser movido
-        }
-    }
 }
