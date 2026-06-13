@@ -9,6 +9,8 @@ public class PlayerSpawner : NetworkBehaviour
     [SerializeField] private GameObject _mousePrefab;
     [SerializeField] private GameObject _birdPrefab;
 
+    [SerializeField] private GameObject _spawnPoint; // Ponto de spawn para os jogadores
+
     [SerializeField] private AnimalSelection _animalSelection;
 
     public override void OnNetworkSpawn()// Este método é chamado quando o objeto de rede é ativado
@@ -32,7 +34,8 @@ public class PlayerSpawner : NetworkBehaviour
             return;
         }
 
-        Vector3 spawnPosition = new Vector3(clientId * 3f, 1f, 0f);// Define a posição de spawn com base no ID do cliente para evitar sobreposição
+        // Calcula a posição de spawn para o jogador, deslocando-a com base no ID do cliente para evitar que os jogadores spawnem no mesmo local
+        Vector3 spawnPosition = _spawnPoint.transform.position + new Vector3(clientId * 2f, 0f, 0f);
 
         GameObject player = Instantiate(prefabToSpawn, spawnPosition, Quaternion.identity);// Instancia o prefab do animal na posição de spawn
 

@@ -20,6 +20,9 @@ public class Login_Register : MonoBehaviour
     [SerializeField] private Button _showPasswordButton;
     [SerializeField] private Button _hidePasswordButton;
 
+    [Header("StartServer ou StarClient")]
+    [SerializeField] private NetworkManagerUI _networkManagerUI;
+
     // Endereço do servidor Node.js
     // Como estás a testar no teu PC, usa localhost
     private string serverURL = "http://localhost:3000";
@@ -63,7 +66,7 @@ public class Login_Register : MonoBehaviour
         StartCoroutine(SendRequest("/register"));
     }
 
-    IEnumerator SendRequest(string endpoint)
+    IEnumerator SendRequest(string endpoint)// Envia os dados para o servidor Node.js e espera pela resposta
     {
         // Impede enviar dados vazios para o servidor
         if (string.IsNullOrWhiteSpace(_username.text) || string.IsNullOrWhiteSpace(_password.text))
@@ -104,7 +107,7 @@ public class Login_Register : MonoBehaviour
         // Converte a resposta JSON do servidor para objeto C#
         ResponseData response = JsonUtility.FromJson<ResponseData>(request.downloadHandler.text);
 
-        _messageText.text = response.message;
+        _messageText.text = response.message;// Mostra a mensagem de sucesso ou erro do servidor
 
         // Se o login for bem-sucedido, depois podes mudar para o Lobby
         if (response.success && endpoint == "/login")
@@ -112,12 +115,28 @@ public class Login_Register : MonoBehaviour
             Debug.Log("Login feito com sucesso!");
             Debug.Log("User ID: " + response.userID);
 
-            LoadScene();
+            PlayerSession.UserID = response.userID;
+            PlayerSession.Username = _username.text;
+
+            SceneManager.LoadScene("Lobby");
         }
     }
 
     public void LoadScene()// Muda para a cena depois de um login bem-sucedido
     {
         SceneManager.LoadScene("Mapa_1");
-    }   
+    }
+       
+    public void StartServerOrClient()
+    {
+        if (_username.text == "server" && _password.text == "server")
+        {
+            _networkManagerUI.StartServer();
+        }
+        else
+        {
+            _networkManagerUI.StartClient();
+        }
+    }
+
 }

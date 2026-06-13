@@ -116,3 +116,73 @@ exports.login = (req, res) => {
         }
     );
 };
+
+//Shop
+//Responsavel pela loja
+
+exports.getShop = (req, res) => {
+    const userID = req.params.userID;
+
+    const userQuery = `
+        SELECT coins
+        FROM users
+        WHERE id_user = ?
+    `;
+
+    db.query(userQuery, [userID], (err, userResult) => {
+        if (err) {
+            console.log(err);
+            return res.json({
+                success: false,
+                message: "Erro ao buscar moedas do utilizador"
+            });
+        }
+
+        if (userResult.length === 0) {
+            return res.json({
+                success: false,
+                message: "Utilizador não encontrado"
+            });
+        }
+
+        const coins = userResult[0].coins;
+
+        const animalsQuery = `
+            SELECT 
+                a.id_animal,
+                a.name,
+                a.description,
+                a.ability1,
+                a.ability2,
+                a.speed,
+                a.price_coins,
+                CASE 
+                    WHEN ua.id_user IS NULL THEN 0 
+                    ELSE 1 
+                END AS owned
+            FROM animals a
+            LEFT JOIN user_animals ua
+                ON ua.id_animal = a.id_animal
+                AND ua.id_user = ?
+            ORDER BY a.id_animal
+        `;
+
+        db.query(animalsQuery, [userID], (err, animalsResult) => {
+            if (err) {
+                console.log(err);
+                return res.json({
+                    success: false,
+                    message: "Erro ao buscar animais"
+                });
+            }
+
+            res.json({
+                success: true,
+                message: "Shop carregado com sucesso",
+                userID: parseInt(userID),
+                coins: coins,
+                animals: animalsResult
+            });
+        });
+    });
+};
