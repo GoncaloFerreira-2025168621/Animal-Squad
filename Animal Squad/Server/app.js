@@ -17,6 +17,7 @@ app.use(cors());
 app.use(express.json());
 
 
+
 //ROUTES
 
 // Route de registo
@@ -25,6 +26,9 @@ app.post("/register", handlers.register);
 // Route de login
 app.post("/login", handlers.login);
 
+// Rotas do shop
+app.get("/shop/:userID", handlers.getShop);
+app.post("/shop/buy", handlers.buyAnimal);
 
 //SERVER 
 

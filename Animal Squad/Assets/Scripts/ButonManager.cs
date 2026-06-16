@@ -4,6 +4,8 @@ using UnityEngine.SceneManagement;
 public class ButonManager : MonoBehaviour
 {
     [SerializeField] private Login_Register _loginRegister;
+    [SerializeField] private GameObject _Shop;
+    [SerializeField] private GameObject _Maps;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -52,5 +54,20 @@ public class ButonManager : MonoBehaviour
     {
         Debug.Log("Carregando cena de créditos...");
         SceneManager.LoadScene("Credits");
+    }
+
+    public void ShowShop()
+    {
+        _Shop.SetActive(true);
+    }
+
+    public void HideShop()
+    {
+        _Shop.SetActive(false);
+    }
+
+    public void HideMaps()
+    {
+        _Maps.SetActive(false);
     }
 }

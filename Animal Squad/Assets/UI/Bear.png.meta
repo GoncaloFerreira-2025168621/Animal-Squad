@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 5a6f66e0639d0164e844b8b6fb33abfa
+guid: 5a5d75eda17898348bd31fdc9c44c8dd
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -48,7 +48,7 @@ TextureImporter:
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 1536
+  spritePixelsToUnits: 100
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -97,13 +97,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Animais_0
+      name: Bear_0
       rect:
         serializedVersion: 2
-        x: 0
-        y: 425
-        width: 1536
-        height: 316
+        x: 4
+        y: 0
+        width: 1521
+        height: 1024
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -112,8 +112,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 0cd120656b72caa41ac5039e644e4596
-      internalID: 1185654293
+      spriteID: 29b04a6338c713841b7275787dcf5d8a
+      internalID: 806055491
       vertices: []
       indices: 
       edges: []
@@ -122,7 +122,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 8df122d0dacb26d40b1b376ac5a7d6b2
+    spriteID: 0412b91de691baf4fa8587437a59f760
     internalID: 0
     vertices: []
     indices: 
@@ -132,7 +132,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Animais_0: 1185654293
+      Bear_0: 806055491
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

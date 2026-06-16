@@ -121,8 +121,11 @@ exports.login = (req, res) => {
 //Responsavel pela loja
 
 exports.getShop = (req, res) => {
+    // Vai buscar o userID que vem no URL
+    // Exemplo: /shop/3
     const userID = req.params.userID;
 
+    // Primeiro vamos buscar as moedas do utilizador
     const userQuery = `
         SELECT coins
         FROM users
@@ -138,6 +141,7 @@ exports.getShop = (req, res) => {
             });
         }
 
+        // Se não encontrar nenhum utilizador com esse id
         if (userResult.length === 0) {
             return res.json({
                 success: false,
@@ -147,23 +151,26 @@ exports.getShop = (req, res) => {
 
         const coins = userResult[0].coins;
 
+        // Agora vamos buscar todos os animais.
+        // O LEFT JOIN serve para saber se o user já comprou cada animal ou não.
         const animalsQuery = `
             SELECT 
                 a.id_animal,
                 a.name,
                 a.description,
-                a.ability1,
-                a.ability2,
-                a.speed,
                 a.price_coins,
+
                 CASE 
-                    WHEN ua.id_user IS NULL THEN 0 
-                    ELSE 1 
+                    WHEN ua.id_user IS NULL THEN 0
+                    ELSE 1
                 END AS owned
+
             FROM animals a
+
             LEFT JOIN user_animals ua
                 ON ua.id_animal = a.id_animal
                 AND ua.id_user = ?
+
             ORDER BY a.id_animal
         `;
 
@@ -176,12 +183,174 @@ exports.getShop = (req, res) => {
                 });
             }
 
+            // Resposta que vai para o Unity
             res.json({
                 success: true,
                 message: "Shop carregado com sucesso",
                 userID: parseInt(userID),
                 coins: coins,
                 animals: animalsResult
+            });
+        });
+    });
+};
+
+//Responsavel pela compra na loja
+exports.buyAnimal = (req, res) => {
+    // O Unity vai enviar isto:
+    // {
+    //   "userID": 1,
+    //   "animalID": 2
+    // }
+
+    const { userID, animalID } = req.body;
+
+    if (!userID || !animalID) {
+        return res.json({
+            success: false,
+            message: "Dados inválidos"
+        });
+    }
+
+    // Usamos transaction porque a compra faz 2 coisas:
+    // 1. Retira moedas ao jogador
+    // 2. Guarda o animal comprado
+    // Se uma falhar, a outra também é cancelada.
+    db.beginTransaction((err) => {
+        if (err) {
+            console.log(err);
+            return res.json({
+                success: false,
+                message: "Erro ao iniciar compra"
+            });
+        }
+
+        // Verifica se o user já tem este animal
+        const checkOwnedQuery = `
+            SELECT id_user_animal
+            FROM user_animals
+            WHERE id_user = ? AND id_animal = ?
+        `;
+
+        db.query(checkOwnedQuery, [userID, animalID], (err, ownedResult) => {
+            if (err) {
+                return db.rollback(() => {
+                    console.log(err);
+                    res.json({
+                        success: false,
+                        message: "Erro ao verificar animal comprado"
+                    });
+                });
+            }
+
+            if (ownedResult.length > 0) {
+                return db.rollback(() => {
+                    res.json({
+                        success: false,
+                        message: "Já compraste este animal"
+                    });
+                });
+            }
+
+            // Buscar moedas do user e preço do animal
+            const dataQuery = `
+                SELECT 
+                    u.coins,
+                    a.price_coins
+                FROM users u
+                JOIN animals a
+                WHERE u.id_user = ?
+                AND a.id_animal = ?
+            `;
+
+            db.query(dataQuery, [userID, animalID], (err, dataResult) => {
+                if (err) {
+                    return db.rollback(() => {
+                        console.log(err);
+                        res.json({
+                            success: false,
+                            message: "Erro ao buscar dados da compra"
+                        });
+                    });
+                }
+
+                if (dataResult.length === 0) {
+                    return db.rollback(() => {
+                        res.json({
+                            success: false,
+                            message: "Utilizador ou animal inválido"
+                        });
+                    });
+                }
+
+                const coins = dataResult[0].coins;
+                const price = dataResult[0].price_coins;
+
+                // Verifica se tem moedas suficientes
+                if (coins < price) {
+                    return db.rollback(() => {
+                        res.json({
+                            success: false,
+                            message: "Moedas insuficientes"
+                        });
+                    });
+                }
+
+                // Retirar moedas ao user
+                const updateCoinsQuery = `
+                    UPDATE users
+                    SET coins = coins - ?
+                    WHERE id_user = ?
+                `;
+
+                db.query(updateCoinsQuery, [price, userID], (err) => {
+                    if (err) {
+                        return db.rollback(() => {
+                            console.log(err);
+                            res.json({
+                                success: false,
+                                message: "Erro ao retirar moedas"
+                            });
+                        });
+                    }
+
+                    // Guardar animal comprado
+                    const insertAnimalQuery = `
+                        INSERT INTO user_animals (id_user, id_animal)
+                        VALUES (?, ?)
+                    `;
+
+                    db.query(insertAnimalQuery, [userID, animalID], (err) => {
+                        if (err) {
+                            return db.rollback(() => {
+                                console.log(err);
+                                res.json({
+                                    success: false,
+                                    message: "Erro ao guardar animal comprado"
+                                });
+                            });
+                        }
+
+                        // Se tudo correu bem, confirma a compra
+                        db.commit((err) => {
+                            if (err) {
+                                return db.rollback(() => {
+                                    console.log(err);
+                                    res.json({
+                                        success: false,
+                                        message: "Erro ao finalizar compra"
+                                    });
+                                });
+                            }
+
+                            res.json({
+                                success: true,
+                                message: "Animal comprado com sucesso",
+                                newCoins: coins - price
+                            });
+                        });
+                    });
+                });
             });
         });
     });

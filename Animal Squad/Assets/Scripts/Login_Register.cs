@@ -1,10 +1,11 @@
 using System.Collections;
 using System.Text;
 using TMPro;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.Networking;
-using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 
 public class Login_Register : MonoBehaviour
@@ -109,7 +110,7 @@ public class Login_Register : MonoBehaviour
 
         _messageText.text = response.message;// Mostra a mensagem de sucesso ou erro do servidor
 
-        // Se o login for bem-sucedido, depois podes mudar para o Lobby
+        // Se o login for bem-sucedido, depois podes mudar para o Lobby 
         if (response.success && endpoint == "/login")
         {
             Debug.Log("Login feito com sucesso!");
@@ -118,25 +119,32 @@ public class Login_Register : MonoBehaviour
             PlayerSession.UserID = response.userID;
             PlayerSession.Username = _username.text;
 
-            SceneManager.LoadScene("Lobby");
+            if (_username.text == "server" && _password.text == "server")
+            {
+                Debug.Log("A iniciar como Server...");
+
+                bool started = NetworkManager.Singleton.StartServer();
+
+                if (started)
+                {
+                    NetworkManager.Singleton.SceneManager.LoadScene("Lobby", LoadSceneMode.Single);
+                }
+            }
+            else
+            {
+                Debug.Log("A iniciar como Client...");
+
+                NetworkManager.Singleton.StartClient();
+
+                // Não chames SceneManager.LoadScene("Lobby") aqui.
+                // O Server já está no Lobby e o Netcode vai sincronizar a cena.
+            }
         }
     }
 
-    public void LoadScene()// Muda para a cena depois de um login bem-sucedido
+    /*public void LoadScene()// Muda para a cena depois de um login bem-sucedido
     {
         SceneManager.LoadScene("Mapa_1");
-    }
-       
-    public void StartServerOrClient()
-    {
-        if (_username.text == "server" && _password.text == "server")
-        {
-            _networkManagerUI.StartServer();
-        }
-        else
-        {
-            _networkManagerUI.StartClient();
-        }
-    }
+    }*/
 
 }
