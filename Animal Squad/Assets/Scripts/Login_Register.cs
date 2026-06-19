@@ -21,20 +21,32 @@ public class Login_Register : MonoBehaviour
     [SerializeField] private Button _showPasswordButton;
     [SerializeField] private Button _hidePasswordButton;
 
-    [Header("StartServer ou StarClient")]
-    [SerializeField] private NetworkManagerUI _networkManagerUI;
-
-    // Endereço do servidor Node.js
-    // Como estás a testar no teu PC, usa localhost
-    private string serverURL = "http://localhost:3000";
+    [Header("Painéis")]
+    [SerializeField] private GameObject _loginPanel;
+    [SerializeField] private GameObject _lobbyPanel;
 
     void Start()
     {
         // A password começa escondida
         _password.contentType = TMP_InputField.ContentType.Password;
+        _password.ForceLabelUpdate();
 
         // O botão de esconder começa invisível
-        _hidePasswordButton.gameObject.SetActive(false);
+        if (_hidePasswordButton != null)
+        {
+            _hidePasswordButton.gameObject.SetActive(false);
+        }
+
+        if (_showPasswordButton != null)
+        {
+            _showPasswordButton.gameObject.SetActive(true);
+        }
+
+        // O lobby pode começar escondido até fazer login
+        if (_lobbyPanel != null)
+        {
+            _lobbyPanel.SetActive(false);
+        }
     }
 
     public void ShowPassword()
@@ -43,102 +55,127 @@ public class Login_Register : MonoBehaviour
         if (_password.contentType == TMP_InputField.ContentType.Password)
         {
             _password.contentType = TMP_InputField.ContentType.Standard;
-            _hidePasswordButton.gameObject.SetActive(true);
-            _showPasswordButton.gameObject.SetActive(false);
+
+            if (_hidePasswordButton != null)
+            {
+                _hidePasswordButton.gameObject.SetActive(true);
+            }
+
+            if (_showPasswordButton != null)
+            {
+                _showPasswordButton.gameObject.SetActive(false);
+            }
         }
         else
         {
             _password.contentType = TMP_InputField.ContentType.Password;
-            _hidePasswordButton.gameObject.SetActive(false);
-            _showPasswordButton.gameObject.SetActive(true);
+
+            if (_hidePasswordButton != null)
+            {
+                _hidePasswordButton.gameObject.SetActive(false);
+            }
+
+            if (_showPasswordButton != null)
+            {
+                _showPasswordButton.gameObject.SetActive(true);
+            }
         }
 
-        // Atualiza visualmente o campo depois de mudar o contentType
+        // Atualiza visualmente o campo
         _password.ForceLabelUpdate();
     }
 
     public void Login()
     {
-        StartCoroutine(SendRequest("/login"));
+        // Verifica se escreveu username e password
+        if (string.IsNullOrWhiteSpace(_username.text) || string.IsNullOrWhiteSpace(_password.text))
+        {
+            _messageText.text = "Preenche todos os campos";
+            return;
+        }
+
+        // Verifica se o client já está ligado ao server
+        if (NetworkManager.Singleton == null || NetworkManager.Singleton.IsClient == false)
+        {
+            _messageText.text = "Primeiro liga-te ao servidor";
+            return;
+        }
+
+        // Verifica se existe o LoginNetwork na cena
+        if (LoginNetwork.Instance == null)
+        {
+            _messageText.text = "LoginNetwork não encontrado";
+            return;
+        }
+
+        _messageText.text = "A fazer login...";
+
+        // Envia o login para o servidor Unity
+        LoginNetwork.Instance.LoginServerRpc(_username.text, _password.text);
     }
 
     public void Register()
     {
-        StartCoroutine(SendRequest("/register"));
-    }
-
-    IEnumerator SendRequest(string endpoint)// Envia os dados para o servidor Node.js e espera pela resposta
-    {
-        // Impede enviar dados vazios para o servidor
+        // Verifica se escreveu username e password
         if (string.IsNullOrWhiteSpace(_username.text) || string.IsNullOrWhiteSpace(_password.text))
         {
             _messageText.text = "Preenche todos os campos";
-            yield break;
+            return;
         }
 
-        // Dados que vão ser enviados para o Node.js
-        UserData data = new UserData();
-        data.username = _username.text;
-        data.password = _password.text;
-
-        // Converte o objeto para JSON
-        string json = JsonUtility.ToJson(data);
-
-        // Cria uma request POST para /login ou /register
-        UnityWebRequest request = new UnityWebRequest(serverURL + endpoint, "POST");
-
-        byte[] bodyRaw = Encoding.UTF8.GetBytes(json); // Converte o JSON para bytes
-
-        request.uploadHandler = new UploadHandlerRaw(bodyRaw); // Envia o JSON no corpo da request
-        request.downloadHandler = new DownloadHandlerBuffer(); // Prepara para receber a resposta do servidor
-
-        // Diz ao servidor que estamos a enviar JSON
-        request.SetRequestHeader("Content-Type", "application/json");
-
-        yield return request.SendWebRequest();
-
-        // Caso não consiga ligar ao servidor
-        if (request.result != UnityWebRequest.Result.Success)
+        // Verifica se o client já está ligado ao server
+        if (NetworkManager.Singleton == null || NetworkManager.Singleton.IsClient == false)
         {
-            _messageText.text = "Erro ao ligar ao servidor";
-            Debug.Log(request.error);
-            yield break;
+            _messageText.text = "Primeiro liga-te ao servidor";
+            return;
         }
 
-        // Converte a resposta JSON do servidor para objeto C#
-        ResponseData response = JsonUtility.FromJson<ResponseData>(request.downloadHandler.text);
-
-        _messageText.text = response.message;// Mostra a mensagem de sucesso ou erro do servidor
-
-        // Se o login for bem-sucedido, depois podes mudar para o Lobby 
-        if (response.success && endpoint == "/login")
+        // Verifica se existe o LoginNetwork na cena
+        if (LoginNetwork.Instance == null)
         {
-            Debug.Log("Login feito com sucesso!");
-            Debug.Log("User ID: " + response.userID);
+            _messageText.text = "LoginNetwork não encontrado";
+            return;
+        }
 
-            PlayerSession.UserID = response.userID;
-            PlayerSession.Username = _username.text;
+        _messageText.text = "A registar...";
 
-            if (_username.text == "server" && _password.text == "server")
-            {
-                Debug.Log("A iniciar como Server...");
+        // Envia o registo para o servidor Unity
+        LoginNetwork.Instance.RegisterServerRpc(_username.text, _password.text);
+    }
 
-                bool started = NetworkManager.Singleton.StartServer();
+    public void ReceiveLoginResult(bool success, string message, int userID, string username, bool isLogin)
+    {
+        // Mostra a resposta do servidor
+        _messageText.text = message;
 
-                if (started)
-                {
-                    NetworkManager.Singleton.SceneManager.LoadScene("Lobby", LoadSceneMode.Single);
-                }
-            }
-            else
-            {
-                Debug.Log("A iniciar como Client...");
+        if (success == false)
+        {
+            return;
+        }
 
-                NetworkManager.Singleton.StartClient();
+        // Se for apenas registo, não entra logo no lobby
+        if (isLogin == false)
+        {
+            return;
+        }
 
-                // Não chames SceneManager.LoadScene("Lobby") aqui.
-                // O Server já está no Lobby e o Netcode vai sincronizar a cena.
-            }
+        Debug.Log("Login feito com sucesso");
+        Debug.Log("User ID: " + userID);
+
+        // Guarda dados do jogador
+        PlayerSession.UserID = userID;
+        PlayerSession.Username = username;
+
+        // Esconde o login
+        if (_loginPanel != null)
+        {
+            _loginPanel.SetActive(false);
+        }
+
+        // Mostra o lobby
+        if (_lobbyPanel != null)
+        {
+            _lobbyPanel.SetActive(true);
         }
     }
 

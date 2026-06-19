@@ -355,3 +355,81 @@ exports.buyAnimal = (req, res) => {
         });
     });
 };
+
+//COINS
+//Responsavel por adicionar moedas ao utilizador
+
+exports.collectCoin = (req, res) => {
+
+    // Dados enviados pelo Unity Server
+    const { userID, coinID, value } = req.body;
+
+    // Verifica se recebeu os dados necessários
+    if (!userID || !coinID || !value) {
+
+        return res.json({
+            success: false,
+            message: "Dados da moeda inválidos",
+            newCoins: 0
+        });
+    }
+
+    // Adiciona moedas ao utilizador
+    const updateCoinsQuery = `
+        UPDATE users
+        SET coins = IFNULL(coins, 0) + ?
+        WHERE id_user = ?
+    `;
+
+    db.query(updateCoinsQuery, [value, userID], (err, result) => {
+
+        if (err) {
+
+            console.log(err);
+
+            return res.json({
+                success: false,
+                message: "Erro ao adicionar moeda",
+                newCoins: 0
+            });
+        }
+
+        // Se não encontrou o utilizador
+        if (result.affectedRows === 0) {
+
+            return res.json({
+                success: false,
+                message: "Utilizador não encontrado",
+                newCoins: 0
+            });
+        }
+
+        // Vai buscar as moedas atualizadas
+        const getCoinsQuery = `
+            SELECT coins
+            FROM users
+            WHERE id_user = ?
+        `;
+
+        db.query(getCoinsQuery, [userID], (err2, coinsResult) => {
+
+            if (err2) {
+
+                console.log(err2);
+
+                return res.json({
+                    success: false,
+                    message: "Erro ao buscar moedas",
+                    newCoins: 0
+                });
+            }
+
+            // Resposta para o Unity Server
+            return res.json({
+                success: true,
+                message: "Moeda apanhada",
+                newCoins: coinsResult[0].coins
+            });
+        });
+    });
+};

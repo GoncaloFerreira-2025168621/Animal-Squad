@@ -1,17 +1,15 @@
 using System.Collections;
 using System.Text;
 using TMPro;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UI;
 
 public class Shop_Manager : MonoBehaviour
 {
-    [Header("ANimais entre cenas")]
-    [SerializeField] SaveAnimal _SaveAnimal;
-
-    [Header("Servidor")]
-    [SerializeField] private string _serverURL = "http://localhost:3000";
+    [Header("Animais entre cenas")]
+    [SerializeField] private SaveAnimal _SaveAnimal;
 
     [Header("UI Moedas")]
     [SerializeField] private TMP_Text _coinsText;
@@ -20,26 +18,26 @@ public class Shop_Manager : MonoBehaviour
     [SerializeField] private TMP_Text _animalNameText;
     [SerializeField] private TMP_Text _descriptionText;
 
-    [Header("Botões dos Animais")]
+    [Header("Botoes dos Animais")]
     [SerializeField] private Button[] _animalButtons;
 
     [Tooltip("IDs dos animais na base de dados. Tem de ter o mesmo tamanho que _animalButtons.")]
     [SerializeField] private int[] _animalIDs;
 
-    [Header("Animais que seram vistos na plataforma")]
+    [Header("Animais que serao vistos na plataforma")]
     [SerializeField] private GameObject _BirdObject;
     [SerializeField] private GameObject _BeaverObject;
     [SerializeField] private GameObject _BearObject;
     [SerializeField] private GameObject _RatObject;
 
-    [Tooltip("Objetos dos cadeados por cima dos botões. Opcional.")]
+    [Tooltip("Objetos dos cadeados por cima dos botoes. Opcional.")]
     [SerializeField] private GameObject[] _lockObjects;
 
-    [Header("Botão Comprar")]
+    [Header("Botao Comprar")]
     [SerializeField] private Button _buyButton;
     [SerializeField] private TMP_Text _buyButtonText;
 
-    [Header("Botão Selecionar")]
+    [Header("Botao Selecionar")]
     [SerializeField] private Button _selectButton;
     [SerializeField] private TMP_Text _selectText;
     [SerializeField] private TMP_Text _selectedText;
@@ -47,118 +45,118 @@ public class Shop_Manager : MonoBehaviour
     [Header("Mensagem")]
     [SerializeField] private TMP_Text _messageText;
 
-    // Lista de animais carregada da base de dados
+    // Lista de animais carregada pelo Server
     private AnimalShopData[] _animals;
 
-    // Índice do animal que está atualmente a ser mostrado
+    // Indice do animal que esta atualmente a ser mostrado
     private int _currentAnimalIndex = 0;
-    [SerializeField] private GameObject _currentAnimal;
 
     private void Start()
     {
-        // Liga automaticamente os botões dos animais às funções certas
+        // Liga automaticamente os botoes dos animais as funcoes certas
         SetupAnimalButtons();
 
-        // Começa com os botões escondidos até receber dados da base de dados
-        _buyButton.gameObject.SetActive(false);
-        _selectButton.gameObject.SetActive(false);
+        // Comeca com os botoes escondidos ate receber dados do Server
+        if (_buyButton != null)
+        {
+            _buyButton.gameObject.SetActive(false);
+        }
 
-        // Carrega dados do shop
-        StartCoroutine(LoadShop());
+        if (_selectButton != null)
+        {
+            _selectButton.gameObject.SetActive(false);
+        }
+
+        HideAllPreviewAnimals();
+
+        // Se o jogador ja fez login, pode carregar a shop
+        if (PlayerSession.UserID > 0)
+        {
+            LoadShopFromServer();
+        }
+    }
+
+    private void OnEnable()
+    {
+        // Quando o painel da shop abre, tenta carregar a shop
+        if (PlayerSession.UserID > 0 && _animals == null)
+        {
+            LoadShopFromServer();
+        }
     }
 
     private void SetupAnimalButtons()
     {
-        // Segurança para evitar erros se esqueceres de preencher no Inspector
+        // Seguranca para evitar erros se esqueceres de preencher no Inspector
         if (_animalButtons == null || _animalIDs == null)
         {
-            Debug.LogError("Animal Buttons ou Animal IDs não foram preenchidos.");
+            Debug.LogError("Animal Buttons ou Animal IDs nao foram preenchidos.");
             return;
         }
 
         if (_animalButtons.Length != _animalIDs.Length)
         {
-            Debug.LogError("O número de botões tem de ser igual ao número de IDs.");
+            Debug.LogError("O numero de botoes tem de ser igual ao numero de IDs.");
             return;
         }
 
         for (int i = 0; i < _animalButtons.Length; i++)
         {
-            // Guardamos o ID numa variável local.
-            // Isto é importante para cada botão ficar com o ID certo.
             int animalID = _animalIDs[i];
 
             // Limpa eventos antigos para evitar chamar duas vezes
             _animalButtons[i].onClick.RemoveAllListeners();
 
-            // Quando clicar neste botão, escolhe o animal com este ID
+            // Quando clicar neste botao, escolhe o animal com este ID
             _animalButtons[i].onClick.AddListener(() =>
             {
                 SelectAnimalByID(animalID);
+                ShowPreviewAnimal(animalID);
             });
-
-            if (animalID == 1)
-            {
-                _animalButtons[i].onClick.AddListener(() =>
-                {
-                    ShowBird();
-                    _SaveAnimal._AnimalSelect = 3;
-                });
-            }
-            else if (animalID == 2)
-            {
-                _animalButtons[i].onClick.AddListener(() =>
-                {
-                    ShowRat();
-                    _SaveAnimal._AnimalSelect = 2;
-                });
-            }
-            else if (animalID == 3) 
-            {
-                _animalButtons[i].onClick.AddListener(() =>
-                {
-                    ShowBeaver();
-                    _SaveAnimal._AnimalSelect = 1;
-                });
-            }
-            else if (animalID == 4)
-            {
-                _animalButtons[i].onClick.AddListener(() =>
-                {
-                    ShowBear();
-                    _SaveAnimal._AnimalSelect = 0;
-                });
-            }
         }
     }
 
-    private IEnumerator LoadShop()
+    // Chamado pelo LoginNetwork depois do login ou pelo botao da Shop
+    public void LoadShopFromServer()
     {
-        // Monta o URL.
-        // Exemplo: http://localhost:3000/shop/1
-        string url = _serverURL + "/shop/" + PlayerSession.UserID;
-
-        Debug.Log("A chamar URL da shop: " + url);
-
-        UnityWebRequest request = UnityWebRequest.Get(url);
-
-        yield return request.SendWebRequest();
-
-        // Se não conseguir ligar ao Node.js
-        if (request.result != UnityWebRequest.Result.Success)
+        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsClient || !NetworkManager.Singleton.IsConnectedClient)
         {
-            _messageText.text = "Erro ao carregar shop";
-            Debug.Log(request.error);
-            yield break;
+            SetMessage("Ainda nao estas ligado ao servidor.");
+            return;
         }
 
-        // Converte JSON recebido para objeto C#
-        ShopResponse response = JsonUtility.FromJson<ShopResponse>(request.downloadHandler.text);
+        if (ShopNetwork.Instance == null)
+        {
+            SetMessage("ShopNetwork nao encontrado na cena.");
+            return;
+        }
+
+        SetMessage("A carregar shop...");
+
+        if (_buyButton != null)
+        {
+            _buyButton.gameObject.SetActive(false);
+        }
+
+        if (_selectButton != null)
+        {
+            _selectButton.gameObject.SetActive(false);
+        }
+
+        // Pede ao Server para carregar a shop.
+        // O Client nao fala com Node.js nem BD.
+        ShopNetwork.Instance.LoadShopServerRpc();
+    }
+
+    // Chamado pelo ShopNetwork quando o Server recebe a resposta do Node.js
+    public void ReceiveShopFromServer(string json)
+    {
+        ShopResponse response = JsonUtility.FromJson<ShopResponse>(json);
 
         if (!response.success)
         {
-            _messageText.text = response.message;
-            yield break;
+            SetMessage(response.message);
+            return;
         }
 
         // Guarda moedas atuais
@@ -172,14 +170,16 @@ public class Shop_Manager : MonoBehaviour
 
         // Mostra o primeiro animal da lista
         ShowAnimal(0);
+
+        SetMessage(response.message);
     }
 
     public void SelectAnimalByID(int animalID)
     {
-        
         if (_animals == null || _animals.Length == 0)
         {
-            Debug.Log("Os animais ainda não foram carregados.");
+            Debug.Log("Os animais ainda nao foram carregados.");
+            SetMessage("Shop ainda nao carregada.");
             return;
         }
 
@@ -193,7 +193,7 @@ public class Shop_Manager : MonoBehaviour
             }
         }
 
-        Debug.Log("Animal não encontrado com ID: " + animalID);
+        Debug.Log("Animal nao encontrado com ID: " + animalID);
     }
 
     private void ShowAnimal(int index)
@@ -201,68 +201,100 @@ public class Shop_Manager : MonoBehaviour
         if (_animals == null || _animals.Length == 0)
             return;
 
+        if (index < 0 || index >= _animals.Length)
+            return;
+
         // Guarda qual animal estamos a ver agora
         _currentAnimalIndex = index;
-
 
         AnimalShopData animal = _animals[_currentAnimalIndex];
 
         // Atualiza textos principais
-        _coinsText.text = PlayerSession.Coins.ToString();
-        _animalNameText.text = animal.name;
-        _descriptionText.text = animal.description;
+        if (_coinsText != null)
+        {
+            _coinsText.text = PlayerSession.Coins.ToString();
+        }
+
+        if (_animalNameText != null)
+        {
+            _animalNameText.text = animal.name;
+        }
+
+        if (_descriptionText != null)
+        {
+            _descriptionText.text = animal.description;
+        }
 
         bool isOwned = animal.owned == 1;
         bool isSelected = PlayerSession.SelectedAnimalID == animal.id_animal;
 
-        // Se o animal ainda NÃO foi comprado
+        // Se o animal ainda NAO foi comprado
         if (!isOwned)
         {
-            // Mostra botão comprar
-            _buyButton.gameObject.SetActive(true);
+            if (_buyButton != null)
+            {
+                _buyButton.gameObject.SetActive(true);
+                _buyButton.interactable = PlayerSession.Coins >= animal.price_coins;
+            }
 
-            // Esconde botão selecionar
-            _selectButton.gameObject.SetActive(false);
+            if (_selectButton != null)
+            {
+                _selectButton.gameObject.SetActive(false);
+            }
 
-            // O botão de comprar mostra o preço
-            _buyButtonText.text = animal.price_coins.ToString();
-
-            // Só deixa comprar se tiver moedas suficientes
-            _buyButton.interactable = PlayerSession.Coins >= animal.price_coins;
+            if (_buyButtonText != null)
+            {
+                _buyButtonText.text = animal.price_coins.ToString();
+            }
 
             return;
         }
 
-        // Se o animal JÁ foi comprado
+        // Se o animal JA foi comprado
+        if (_buyButton != null)
+        {
+            _buyButton.gameObject.SetActive(false);
+        }
 
-        // Esconde botão comprar
-        _buyButton.gameObject.SetActive(false);
+        if (_selectButton != null)
+        {
+            _selectButton.gameObject.SetActive(true);
+        }
 
-        // Mostra botão selecionar
-        _selectButton.gameObject.SetActive(true);
-
-        // Se este animal já está selecionado
+        // Se este animal ja esta selecionado
         if (isSelected)
         {
-            // Desativa botão porque já está selecionado
-            _selectButton.interactable = false;
+            if (_selectButton != null)
+            {
+                _selectButton.interactable = false;
+            }
 
-            // Esconde texto "Select"
-            _selectText.gameObject.SetActive(false);
+            if (_selectText != null)
+            {
+                _selectText.gameObject.SetActive(false);
+            }
 
-            // Mostra texto "Selected"
-            _selectedText.gameObject.SetActive(true);
+            if (_selectedText != null)
+            {
+                _selectedText.gameObject.SetActive(true);
+            }
         }
         else
         {
-            // Ativa botão porque pode selecionar este animal
-            _selectButton.interactable = true;
+            if (_selectButton != null)
+            {
+                _selectButton.interactable = true;
+            }
 
-            // Mostra texto "Select"
-            _selectText.gameObject.SetActive(true);
+            if (_selectText != null)
+            {
+                _selectText.gameObject.SetActive(true);
+            }
 
-            // Esconde texto "Selected"
-            _selectedText.gameObject.SetActive(false);
+            if (_selectedText != null)
+            {
+                _selectedText.gameObject.SetActive(false);
+            }
         }
     }
 
@@ -271,67 +303,51 @@ public class Shop_Manager : MonoBehaviour
         if (_animals == null || _animals.Length == 0)
             return;
 
-        StartCoroutine(BuyAnimal());
-    }
-
-    private IEnumerator BuyAnimal()
-    {
-        AnimalShopData animal = _animals[_currentAnimalIndex];
-
-        // Cria os dados que vão ser enviados para o Node.js
-        BuyAnimalRequest buyData = new BuyAnimalRequest();
-        buyData.userID = PlayerSession.UserID;
-        buyData.animalID = animal.id_animal;
-
-        string json = JsonUtility.ToJson(buyData);
-
-        UnityWebRequest request = new UnityWebRequest(_serverURL + "/shop/buy", "POST");
-
-        byte[] bodyRaw = Encoding.UTF8.GetBytes(json);
-
-        request.uploadHandler = new UploadHandlerRaw(bodyRaw);
-        request.downloadHandler = new DownloadHandlerBuffer();
-
-        request.SetRequestHeader("Content-Type", "application/json");
-
-        // Evita duplo clique enquanto está a comprar
-        _buyButton.interactable = false;
-
-        yield return request.SendWebRequest();
-
-        if (request.result != UnityWebRequest.Result.Success)
+        if (ShopNetwork.Instance == null)
         {
-            _messageText.text = "Erro ao comprar animal";
-            Debug.Log(request.error);
-
-            ShowAnimal(_currentAnimalIndex);
-            yield break;
+            SetMessage("ShopNetwork nao encontrado.");
+            return;
         }
 
-        BuyAnimalResponse response = JsonUtility.FromJson<BuyAnimalResponse>(request.downloadHandler.text);
+        AnimalShopData animal = _animals[_currentAnimalIndex];
 
-        _messageText.text = response.message;
+        // Evita duplo clique enquanto esta a comprar
+        if (_buyButton != null)
+        {
+            _buyButton.interactable = false;
+        }
 
-        if (response.success)
+        SetMessage("A comprar animal...");
+
+        // Pede ao Server para comprar.
+        // O Client nao envia UserID, porque o Server ja sabe qual UserID pertence a este client.
+        ShopNetwork.Instance.BuyAnimalServerRpc(animal.id_animal);
+    }
+
+    // Chamado pelo ShopNetwork quando o Server recebe a resposta da compra
+    public void ReceiveBuyResultFromServer(bool success, string message, int newCoins, int animalID)
+    {
+        SetMessage(message);
+
+        if (success)
         {
             // Atualiza moedas
-            PlayerSession.Coins = response.newCoins;
+            PlayerSession.Coins = newCoins;
 
-            // Marca este animal como comprado na lista local
-            animal.owned = 1;
+            // Marca o animal como comprado na lista local
+            AnimalShopData animal = FindAnimalByID(animalID);
+
+            if (animal != null)
+            {
+                animal.owned = 1;
+            }
 
             // Atualiza cadeados
             RefreshAnimalButtonsVisual();
+        }
 
-            // Atualiza UI.
-            // Agora o botão Comprar desaparece e aparece Select.
-            ShowAnimal(_currentAnimalIndex);
-        }
-        else
-        {
-            // Se falhou, volta a atualizar o botão
-            ShowAnimal(_currentAnimalIndex);
-        }
+        // Atualiza UI
+        ShowAnimal(_currentAnimalIndex);
     }
 
     public void SelectCurrentAnimal()
@@ -341,22 +357,22 @@ public class Shop_Manager : MonoBehaviour
 
         AnimalShopData animal = _animals[_currentAnimalIndex];
 
-        // Não deixa selecionar animal que ainda não foi comprado
+        // Nao deixa selecionar animal que ainda nao foi comprado
         if (animal.owned != 1)
         {
-            _messageText.text = "Tens de comprar este animal primeiro.";
+            SetMessage("Tens de comprar este animal primeiro.");
             return;
         }
 
-        // Guarda o animal escolhido pelo jogador
+        // Guarda o animal escolhido pelo jogador local
         PlayerSession.SelectedAnimalID = animal.id_animal;
 
-        _messageText.text = animal.name + " selecionado";
+        SetMessage(animal.name + " selecionado");
 
-        // Atualiza o botão Select / Selected dentro da loja
+        // Atualiza o botao Select / Selected dentro da loja
         ShowAnimal(_currentAnimalIndex);
 
-        // Procura o script que mostra os animais no Lobby
+        // Atualiza o animal na plataforma do lobby
         LobbyRoomManager lobbyRoomManager = FindFirstObjectByType<LobbyRoomManager>();
 
         if (lobbyRoomManager != null)
@@ -367,7 +383,7 @@ public class Shop_Manager : MonoBehaviour
 
     private void RefreshAnimalButtonsVisual()
     {
-        // Se não quiseres usar cadeados por script, podes deixar _lockObjects vazio.
+        // Se nao quiseres usar cadeados por script, podes deixar _lockObjects vazio.
         if (_lockObjects == null || _lockObjects.Length == 0)
             return;
 
@@ -383,11 +399,11 @@ public class Shop_Manager : MonoBehaviour
             if (animal == null)
                 continue;
 
-            // Se existir um cadeado nesta posição
+            // Se existir um cadeado nesta posicao
             if (i < _lockObjects.Length && _lockObjects[i] != null)
             {
-                // Se o animal está comprado, esconde o cadeado.
-                // Se não está comprado, mostra o cadeado.
+                // Se o animal esta comprado, esconde o cadeado.
+                // Se nao esta comprado, mostra o cadeado.
                 _lockObjects[i].SetActive(animal.owned == 0);
             }
         }
@@ -407,35 +423,128 @@ public class Shop_Manager : MonoBehaviour
         return null;
     }
 
+    private void ShowPreviewAnimal(int animalID)
+    {
+        if (animalID == 1)
+        {
+            ShowBird();
+
+            if (_SaveAnimal != null)
+            {
+                _SaveAnimal._AnimalSelect = 3;
+            }
+        }
+        else if (animalID == 2)
+        {
+            ShowRat();
+
+            if (_SaveAnimal != null)
+            {
+                _SaveAnimal._AnimalSelect = 2;
+            }
+        }
+        else if (animalID == 3)
+        {
+            ShowBeaver();
+
+            if (_SaveAnimal != null)
+            {
+                _SaveAnimal._AnimalSelect = 1;
+            }
+        }
+        else if (animalID == 4)
+        {
+            ShowBear();
+
+            if (_SaveAnimal != null)
+            {
+                _SaveAnimal._AnimalSelect = 0;
+            }
+        }
+    }
+
+    private void HideAllPreviewAnimals()
+    {
+        if (_BirdObject != null)
+            _BirdObject.SetActive(false);
+
+        if (_BeaverObject != null)
+            _BeaverObject.SetActive(false);
+
+        if (_BearObject != null)
+            _BearObject.SetActive(false);
+
+        if (_RatObject != null)
+            _RatObject.SetActive(false);
+    }
+
     public void ShowBird()
     {
-        _BirdObject.SetActive(true);
-        _BeaverObject.SetActive(false);
-        _BearObject.SetActive(false);
-        _RatObject.SetActive(false);
+        if (_BirdObject != null)
+            _BirdObject.SetActive(true);
+
+        if (_BeaverObject != null)
+            _BeaverObject.SetActive(false);
+
+        if (_BearObject != null)
+            _BearObject.SetActive(false);
+
+        if (_RatObject != null)
+            _RatObject.SetActive(false);
     }
 
     public void ShowRat()
     {
-        _RatObject.SetActive(true);
-        _BeaverObject.SetActive(false);
-        _BearObject.SetActive(false);
-        _BirdObject.SetActive(false);
+        if (_RatObject != null)
+            _RatObject.SetActive(true);
+
+        if (_BeaverObject != null)
+            _BeaverObject.SetActive(false);
+
+        if (_BearObject != null)
+            _BearObject.SetActive(false);
+
+        if (_BirdObject != null)
+            _BirdObject.SetActive(false);
     }
 
     public void ShowBear()
     {
-        _BearObject.SetActive(true);
-        _BeaverObject.SetActive(false);
-        _RatObject.SetActive(false);
-        _BirdObject.SetActive(false);
+        if (_BearObject != null)
+            _BearObject.SetActive(true);
+
+        if (_BeaverObject != null)
+            _BeaverObject.SetActive(false);
+
+        if (_RatObject != null)
+            _RatObject.SetActive(false);
+
+        if (_BirdObject != null)
+            _BirdObject.SetActive(false);
     }
 
     public void ShowBeaver()
-    { 
-        _BeaverObject.SetActive(true); 
-        _BearObject.SetActive(false);
-        _RatObject.SetActive(false);
-        _BirdObject.SetActive(false);
+    {
+        if (_BeaverObject != null)
+            _BeaverObject.SetActive(true);
+
+        if (_BearObject != null)
+            _BearObject.SetActive(false);
+
+        if (_RatObject != null)
+            _RatObject.SetActive(false);
+
+        if (_BirdObject != null)
+            _BirdObject.SetActive(false);
+    }
+
+    private void SetMessage(string message)
+    {
+        Debug.Log(message);
+
+        if (_messageText != null)
+        {
+            _messageText.text = message;
+        }
     }
 }

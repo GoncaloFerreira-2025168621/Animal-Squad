@@ -30,6 +30,10 @@ app.post("/login", handlers.login);
 app.get("/shop/:userID", handlers.getShop);
 app.post("/shop/buy", handlers.buyAnimal);
 
+// Route para apanhar moedas
+app.post("/coins/collect", handlers.collectCoin);
+
+
 //SERVER 
 
 // Inicia servidor na porta 3000

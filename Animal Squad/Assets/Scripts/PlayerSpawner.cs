@@ -18,8 +18,8 @@ public class PlayerSpawner : NetworkBehaviour
     {
         if (!IsClient) return;
 
-        //RequestSpawnServerRpc(_animalSelection._AnimalSelect);
-        RequestSpawnServerRpc(_animalSelection1._selectedAnimal);
+        RequestSpawnServerRpc(_animalSelection._AnimalSelect);
+        //RequestSpawnServerRpc(_animalSelection1._selectedAnimal);
     }
 
     [ServerRpc(RequireOwnership = false)]

@@ -161,7 +161,7 @@ public class LobbyRoomManager : NetworkBehaviour
             roomPass = roomPass.Substring(0, 60);
 
         // Envia pedido para o Server meter este jogador na sala.
-        JoinRoomServerRpc( new FixedString32Bytes(roomCode), new FixedString64Bytes(roomPass), PlayerSession.SelectedAnimalID);
+        JoinRoomServerRpc(new FixedString32Bytes(roomCode), new FixedString64Bytes(roomPass), PlayerSession.SelectedAnimalID);
     }
 
     [ServerRpc(RequireOwnership = false)]
@@ -172,6 +172,10 @@ public class LobbyRoomManager : NetworkBehaviour
 
         string code = roomCode.ToString();
         string pass = roomPass.ToString();
+
+        // O Server confirma se o jogador pode usar este animal
+        if (!CanClientUseAnimal(clientID, animalID))
+            return;
 
         // Se já existe uma sala com esse código,não deixa criar outra igual.
         if (_rooms.ContainsKey(code))
@@ -202,16 +206,20 @@ public class LobbyRoomManager : NetworkBehaviour
         SendMessageToClient(clientID, "Sala criada: " + code);// Envia mensagem apenas para este client.
 
         RefreshRoom(code);// Atualiza os visuais dos jogadores dentro desta sala.
-        
+
     }
 
     [ServerRpc(RequireOwnership = false)]
-    private void JoinRoomServerRpc( FixedString32Bytes roomCode, FixedString64Bytes roomPass, int animalID, ServerRpcParams rpcParams = default)
+    private void JoinRoomServerRpc(FixedString32Bytes roomCode, FixedString64Bytes roomPass, int animalID, ServerRpcParams rpcParams = default)
     {
         ulong clientID = rpcParams.Receive.SenderClientId;
 
         string code = roomCode.ToString();
         string pass = roomPass.ToString();
+
+        // O Server confirma se o jogador pode usar este animal
+        if (!CanClientUseAnimal(clientID, animalID))
+            return;
 
         // Verifica se a sala existe
         if (!_rooms.ContainsKey(code))
@@ -236,7 +244,7 @@ public class LobbyRoomManager : NetworkBehaviour
             return;
         }
 
-        
+
 
         // Se este client já estava noutra sala, removemos primeiro da sala antiga.
         string oldRoom = RemoveClientFromCurrentRoom(clientID);
@@ -264,6 +272,10 @@ public class LobbyRoomManager : NetworkBehaviour
     {
         ulong clientID = rpcParams.Receive.SenderClientId;
 
+        // O Server confirma se o jogador pode usar este animal
+        if (!CanClientUseAnimal(clientID, animalID))
+            return;
+
         _clientAnimals[clientID] = animalID;// Guarda o novo animal escolhido.
 
         // Se o jogador ainda não está numa sala, o Server não precisa avisar ninguém.
@@ -273,8 +285,43 @@ public class LobbyRoomManager : NetworkBehaviour
         // Descobre em que sala este client está.
         string roomCode = _clientRooms[clientID];
 
+        RoomData room = _rooms[roomCode];
+
+        // Se mudou de animal, deixa de estar pronto
+        if (room.ReadyClients.Contains(clientID))
+        {
+            room.ReadyClients.Remove(clientID);
+        }
+
         // Atualiza os jogadores dessa sala.
         RefreshRoom(roomCode);
+        RefreshReadyText(roomCode);
+    }
+
+    private bool CanClientUseAnimal(ulong clientID, int animalID)
+    {
+        // Nao deixa usar animal invalido
+        if (animalID <= 0)
+        {
+            SendMessageToClient(clientID, "Escolhe um animal primeiro.");
+            return false;
+        }
+
+        // O Server confirma se existe ShopNetwork
+        if (ShopNetwork.Instance == null)
+        {
+            SendMessageToClient(clientID, "ShopNetwork nao encontrado no servidor.");
+            return false;
+        }
+
+        // O Server confirma se o animal esta comprado por este client
+        if (!ShopNetwork.Instance.ClientOwnsAnimal(clientID, animalID))
+        {
+            SendMessageToClient(clientID, "Nao tens esse animal comprado.");
+            return false;
+        }
+
+        return true;
     }
 
     //ATUALIZAR VISUAL DE UMA SALA
@@ -650,6 +697,10 @@ public class LobbyRoomManager : NetworkBehaviour
             SendMessageToClient(clientID, "Não pertences a esta sala.");
             return;
         }
+
+        // O Server confirma se o jogador pode usar este animal
+        if (!CanClientUseAnimal(clientID, animalID))
+            return;
 
         _clientAnimals[clientID] = animalID; // Atualiza o animal escolhido
 

@@ -2,7 +2,7 @@ using System.Globalization;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
-using static UnityEditor.Experimental.GraphView.GraphView;
+
 
 public class Nadar : NetworkBehaviour
 {
