@@ -7,6 +7,9 @@ using UnityEngine.UI;
 
 public class Shop_Manager : MonoBehaviour
 {
+    [Header("ANimais entre cenas")]
+    [SerializeField] SaveAnimal _SaveAnimal;
+
     [Header("Servidor")]
     [SerializeField] private string _serverURL = "http://localhost:3000";
 
@@ -99,6 +102,7 @@ public class Shop_Manager : MonoBehaviour
                 _animalButtons[i].onClick.AddListener(() =>
                 {
                     ShowBird();
+                    _SaveAnimal._AnimalSelect = 3;
                 });
             }
             else if (animalID == 2)
@@ -106,6 +110,7 @@ public class Shop_Manager : MonoBehaviour
                 _animalButtons[i].onClick.AddListener(() =>
                 {
                     ShowRat();
+                    _SaveAnimal._AnimalSelect = 2;
                 });
             }
             else if (animalID == 3) 
@@ -113,6 +118,7 @@ public class Shop_Manager : MonoBehaviour
                 _animalButtons[i].onClick.AddListener(() =>
                 {
                     ShowBeaver();
+                    _SaveAnimal._AnimalSelect = 1;
                 });
             }
             else if (animalID == 4)
@@ -120,6 +126,7 @@ public class Shop_Manager : MonoBehaviour
                 _animalButtons[i].onClick.AddListener(() =>
                 {
                     ShowBear();
+                    _SaveAnimal._AnimalSelect = 0;
                 });
             }
         }
@@ -196,6 +203,7 @@ public class Shop_Manager : MonoBehaviour
 
         // Guarda qual animal estamos a ver agora
         _currentAnimalIndex = index;
+
 
         AnimalShopData animal = _animals[_currentAnimalIndex];
 

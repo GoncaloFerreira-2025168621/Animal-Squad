@@ -1,8 +1,11 @@
 using System.Collections;
+using Unity.Netcode;
 using UnityEngine;
 
-public class RiverFLow : MonoBehaviour
+public class RiverFLow : NetworkBehaviour
 {
+    [SerializeField] private ControllerMission _Mission;
+
     [Header("Peças visuais da água, por ordem")]
     [SerializeField] private GameObject[] _WaterPieces;
 
@@ -40,7 +43,25 @@ public class RiverFLow : MonoBehaviour
     {
         if (_Started) return;
 
+        FlowRoutineServerRpc();
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void FlowRoutineServerRpc()
+    {
+        StartCoroutine(FlowRoutine());
+        _Mission._CompletMission2 = true;
+        FlowRoutineClientRpc();
+
+    }
+
+    [ClientRpc]
+    private void FlowRoutineClientRpc()
+    {
+        if (_Started) return;
+
         _Started = true;
+        _Mission._CompletMission2 = true;
         StartCoroutine(FlowRoutine());
     }
 

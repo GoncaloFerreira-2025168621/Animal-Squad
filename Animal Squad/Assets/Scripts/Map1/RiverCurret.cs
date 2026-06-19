@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class RiverCurrent : MonoBehaviour
 {
-    [SerializeField] private GameObject _WaterVisual;// Referência ao objeto visual da água para ativar ou desativar conforme a corrente é ativada ou desativada
+    
     [SerializeField] private bool _Swim;
     private Collider _collider;// Referência ao collider do objeto para controlar quando ele deve ser um trigger ou não
 
@@ -28,7 +28,7 @@ public class RiverCurrent : MonoBehaviour
         _ActiveCurrent = false;// Desativa a corrente, impedindo que os objetos sejam afetados por ela
     }
 
-    public void ActiveVisual()
+    /*public void ActiveVisual()
     {
         if (_WaterVisual != null)
             _WaterVisual.SetActive(true);// Ativa o visual da água, indicando que a corrente está ativa
@@ -38,11 +38,11 @@ public class RiverCurrent : MonoBehaviour
     {
         if (_WaterVisual != null)
             _WaterVisual.SetActive(false);// Desativa o visual da água, indicando que a corrente está inativa
-    }
+    }*/
 
     private void OnTriggerStay(Collider other)//
     {
-        _WaterVisual.SetActive(true);// Ativa o visual da água sempre que um objeto estiver dentro do trigger, indicando que a corrente está ativa
+       
 
         if (!_ActiveCurrent) return;
 
@@ -55,7 +55,7 @@ public class RiverCurrent : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.CompareTag("Castor"))
+        if (collision.gameObject.CompareTag("Castor") || collision.gameObject.CompareTag("Pedra"))
         {
             _collider.isTrigger = true;// Se o personagem colidir com o castor, torna o collider um trigger para permitir que ele entre na corrente sem colidir fisicamente
         }
@@ -63,7 +63,7 @@ public class RiverCurrent : MonoBehaviour
 
     private void OnTriggerExit(Collider other)
     {
-        _WaterVisual.SetActive(false);// Desativa o visual da água quando um objeto sai do trigger, indicando que a corrente está inativa
+        
         if (other.CompareTag("Castor"))
         {
             _collider.isTrigger = false;// Se o personagem sair do trigger, torna o collider não ser mais um trigger para permitir que ele colida normalmente com outros objetos novamente

@@ -358,6 +358,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
+  _WaterVisual: {fileID: 660741314030447199, guid: 99b1e4836c8aa6c4f9e716c82e44d7f6, type: 3}
   _SpeedSwim: 5
   _IsSwimming: 0
 --- !u!1001 &6913897305672924808

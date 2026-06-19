@@ -1,9 +1,14 @@
 using System.Globalization;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.UI;
+using static UnityEditor.Experimental.GraphView.GraphView;
 
 public class Nadar : NetworkBehaviour
 {
+    [SerializeField] private Image _WaterVisual;// Referência ao objeto visual da água para ativar ou desativar conforme a corrente é ativada ou desativada
+    private int _WaterContacts = 0;
+
     [Header("Swim Settings")]
     [SerializeField] private float _SpeedSwim = 5f;
     [SerializeField] private bool _IsSwimming = false;
@@ -16,7 +21,13 @@ public class Nadar : NetworkBehaviour
         _rb = GetComponent<Rigidbody>();
         
         _rb.useGravity = true;// Garante que a gravidade esteja ativada inicialmente, permitindo que o personagem caia normalmente quando não estiver nadando
-        
+
+        GameObject WaterVisual = GameObject.FindGameObjectWithTag("WaterVisual");
+        if (WaterVisual != null)
+        {
+            _WaterVisual = WaterVisual.GetComponent<Image>();
+            _WaterVisual.enabled = false;
+        }
     }
 
     private void Update()
@@ -74,19 +85,34 @@ public class Nadar : NetworkBehaviour
         Debug.Log("Atualizando natação nos clientes: " + moveDirection);
     }
 
-    void OnTriggerStay(Collider other)
+    private void OnTriggerEnter(Collider other)
     {
+        if (!IsOwner) return;
+
         if (other.CompareTag("Water"))
-        { 
-            _IsSwimming = true;// Define o estado de natação como verdadeiro
+        {
+            _WaterContacts++;
+            _IsSwimming = true;
+
+            if (_WaterVisual != null)
+                _WaterVisual.enabled = true;
         }
     }
 
-    void OnTriggerExit(Collider other)
+    private void OnTriggerExit(Collider other)
     {
+        if (!IsOwner) return;
+
         if (other.CompareTag("Water"))
         {
-            _IsSwimming = false;// Define o estado de natação como falso
+            _WaterContacts--;
+
+            if (_WaterContacts <= 0)
+            {
+                _WaterContacts = 0;
+                _IsSwimming = false;
+                _WaterVisual.enabled = false;
+            }
         }
     }
 }

@@ -9,6 +9,8 @@ TagManager:
   - Object_Bird
   - Water
   - Castor
+  - WaterVisual
+  - Pedra
   layers:
   - Default
   - TransparentFX

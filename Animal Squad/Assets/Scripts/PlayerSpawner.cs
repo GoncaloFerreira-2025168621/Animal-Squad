@@ -11,13 +11,15 @@ public class PlayerSpawner : NetworkBehaviour
 
     [SerializeField] private GameObject _spawnPoint; // Ponto de spawn para os jogadores
 
-    [SerializeField] private AnimalSelection _animalSelection;
+    [SerializeField] private SaveAnimal _animalSelection;
+    [SerializeField] private AnimalSelection _animalSelection1;
 
     public override void OnNetworkSpawn()// Este método é chamado quando o objeto de rede é ativado
     {
         if (!IsClient) return;
 
-        RequestSpawnServerRpc(_animalSelection._selectedAnimal);
+        //RequestSpawnServerRpc(_animalSelection._AnimalSelect);
+        RequestSpawnServerRpc(_animalSelection1._selectedAnimal);
     }
 
     [ServerRpc(RequireOwnership = false)]

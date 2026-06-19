@@ -1,6 +1,7 @@
 using UnityEngine;
+using Unity.Netcode;
 
-public class Barragem_Partida : MonoBehaviour
+public class Barragem_Partida : NetworkBehaviour
 {
     [Header("Barragem")]
     [SerializeField] private GameObject _BarragemNormal;
@@ -34,6 +35,6 @@ public class Barragem_Partida : MonoBehaviour
             _WaterSound.Play();//Toca o som da água
 
         if (_RiverFlowController != null)
-            _RiverFlowController.StartRiverFlow();//Começa a aumentar o fluxo do rio
+            _RiverFlowController.FlowRoutineServerRpc();//Começa a aumentar o fluxo do rio
     }
 }
